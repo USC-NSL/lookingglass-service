@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+   echo "Usage: user@host"
+   exit 1
+fi
+
+#initialize ssh environment variables
+source ~/.ssh/environment
+
+host=$1
+
+script_dir=$(dirname $0)
+cd $script_dir
+cd ..
+
+echo "Building..."
+mvn clean compile assembly:single
+
+cd target
+jar=$(ls lookingglass-*.jar)
+version=$(echo $jar | cut -d '-' -f 2)
+snapshot=$(echo $jar | cut -d '-' -f 3)
+
+if [ "$snapshot" == "SNAPSHOT" ]; then
+   dir="$version-SNAPSHOT"
+else
+   dir="$version"
+fi
+
+remote_dir="lookingglass/$dir"
+
+#create remote directory structure if it doesn't exist. create symlink to CURRENT
+cmd="if [ ! -d $remote_dir ]; then mkdir --parents $remote_dir; fi; rm -f lookingglass/CURRENT; ln -s ~/$remote_dir lookingglass/CURRENT;"
+ssh $host $cmd
+    
+#perform upload
+echo "uploading $jar to $host:$remote_dir"
+scp $jar $host:$remote_dir
