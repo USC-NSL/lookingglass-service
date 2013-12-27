@@ -7,6 +7,7 @@ package edu.usc.cs.nsl.lookingglass.service;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import java.net.URL;
+import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,6 +65,10 @@ public class LookingGlassHttpServerTest {
     }
     
     public class TracerouteServiceTestImpl implements TracerouteService {
+
+        public List<String> active() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
         
         @Override
         public boolean submit(Request r1) {

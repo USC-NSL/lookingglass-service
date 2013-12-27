@@ -2,7 +2,9 @@ package edu.usc.cs.nsl.lookingglass.service;
 
 import edu.usc.cs.nsl.lookingglass.database.DBManager;
 import edu.usc.cs.nsl.lookingglass.tracert.Query;
+import edu.usc.cs.nsl.lookingglass.tracert.TracerouteInfo;
 import java.util.LinkedList;
+import java.util.List;
 import org.apache.log4j.Logger;
 
 /**
@@ -86,6 +88,12 @@ public class TracerouteServiceImpl implements TracerouteService {
             log.error("There was an error submitting the request "+request, ex);
             return false;
         }
+    }
+    
+    @Override
+    public List<String> active() {
+        TracerouteInfo trInfo = new TracerouteInfo(dbManager);
+        return trInfo.findWorkingVPs();
     }
 
     public DBManager getDbManager() {

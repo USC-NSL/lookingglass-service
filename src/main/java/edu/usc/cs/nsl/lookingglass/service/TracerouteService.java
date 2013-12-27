@@ -4,6 +4,8 @@
  */
 package edu.usc.cs.nsl.lookingglass.service;
 
+import java.util.List;
+
 /**
  *
  * @author matt
@@ -12,4 +14,5 @@ public interface TracerouteService {
     
     boolean submit(Request request);
     
+    List<String> active();
 }

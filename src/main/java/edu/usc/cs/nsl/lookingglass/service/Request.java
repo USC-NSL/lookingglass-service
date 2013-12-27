@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Request {
     
+    private String id;
     private String lgName = "empty";
     private String type = "empty";
     private String target = "empty";
@@ -51,5 +52,12 @@ public class Request {
     public String toString() {
         return "type: "+type+" lgName: "+lgName+" target: "+target;
     }
-    
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getId() {
+        return id;
+    }
 }
