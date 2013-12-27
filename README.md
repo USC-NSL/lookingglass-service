@@ -11,24 +11,23 @@ Lookingglass-service is a thin Java [JSON-RPC](http://en.wikipedia.org/wiki/JSON
 ##Available Methods
 
 __Submits a traceroute request__
-```json
-submit(request)
+```
+submit(lgName, target, type)
 ```
 
-The request object must have three fields
 - lgName: the name of the looking glass to issue this traceroute to
 - target: the target for the traceroute. Note: This should be an ip. Hostnames often fail for looking glasses.
 - type: can be "http", "telnet", or empty string. Empty string will select the type for you.
 
 The response is an measurement id which can be used to retrieve status and results of traceroutes.
 
-__Returns a list of all active Looking Glass servers__
-```json
+__Retrieve all active Looking Glass servers__
+```
 active()
 ```
 
-__Returns a list of active Looking Glass servers within the specified asn__
-```json
+__Retrieve active Looking Glass servers within the specified asn__
+```
 active(asn)
 ```
 
@@ -67,7 +66,7 @@ $ java -jar target/LookingGlassService-1.0-SNAPSHOT-jar-with-dependencies.jar -c
 
 ##Configuration
 
-####Service
+####Server
 
 Here is a sample configuration file
 ```
@@ -75,6 +74,12 @@ db.url=jdbc:mysql://localhost:3306/lg.db
 db.user=looking
 db.password=glass
 db.driver=com.mysql.jdbc.Driver
+
+server.port=1420
+server.maxHttpThreads=10
+server.maxTracerouteThreads=20
+server.domainQueryInterval=300000
+server.queryCheckInterval=1000
 
 #more to come...
 ```
