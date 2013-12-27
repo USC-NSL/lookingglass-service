@@ -42,3 +42,23 @@ $ mvn clean compile assembly:single
 ```bash
 $ java -jar target/LookingGlassService-1.0-SNAPSHOT-jar-with-dependencies.jar -config /path/to/lookingglass.conf
 ```
+
+##Configuration
+
+####Service
+
+Here is a sample configuration file
+```
+db.url=jdbc:mysql://localhost:3306/lg.db
+db.user=looking
+db.password=glass
+db.driver=com.mysql.jdbc.Driver
+
+#more to come...
+```
+
+####Logging
+Lookingglass-service uses log4j. By default, logging is configured for most verbose to stdout. To configure logging, specify the location of your log4j configuration file and pass it to the JVM as system property.
+```bash
+$java -Dlog4j.configuration=file:/my/folder/log4j.properties ...
+```
