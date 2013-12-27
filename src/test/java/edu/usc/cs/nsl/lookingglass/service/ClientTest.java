@@ -3,6 +3,8 @@ package edu.usc.cs.nsl.lookingglass.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
+import edu.usc.cs.nsl.lookingglass.service.Request;
+import edu.usc.cs.nsl.lookingglass.service.TracerouteService;
 import java.net.InetAddress;
 import java.net.Socket;
 
