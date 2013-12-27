@@ -4,7 +4,7 @@ Lookingglass-service is a thin Java [JSON-RPC](http://en.wikipedia.org/wiki/JSON
 
 ##Functionality
 
-- Lookingglass-service provides an interoperable API for issuing traceroute requests to Looking Glass servers.
+- Provides an interoperable API for issuing traceroute requests to Looking Glass servers.
 - High-level abstraction for issuing traceroutes.
 - Efficiently rate control the number of queries being issued to a particular domain of Looking Glass servers.
 
