@@ -87,7 +87,7 @@ public class QueryProcessor {
                     lgManager.addQuery(query);
                 }
             } else {
-                log.debug("Q poll timeout");
+                //log.debug("Q poll timeout");
             }
             
             /**
@@ -103,7 +103,13 @@ public class QueryProcessor {
      */
     public void runAvailableQueries() {
         
-        log.debug("runAvailableQueries");
+        /**
+         * The plan is to do away with this entire method but the lookingglass
+         * library needs further refactoring before that can happen. Namely, LGManager
+         * doesn't do anything very important and should be replaced.
+         */
+        
+        //log.debug("runAvailableQueries");
         
         for (String domain : lgManager.getQueries().keySet()) {
 

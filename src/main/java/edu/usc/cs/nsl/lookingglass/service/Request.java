@@ -1,9 +1,13 @@
 package edu.usc.cs.nsl.lookingglass.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  *
  * @author matt
  */
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Request {
     
     private String lgName = "empty";

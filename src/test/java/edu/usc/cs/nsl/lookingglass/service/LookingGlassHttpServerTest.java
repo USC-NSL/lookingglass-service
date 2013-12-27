@@ -4,16 +4,9 @@
  */
 package edu.usc.cs.nsl.lookingglass.service;
 
-import edu.usc.cs.nsl.lookingglass.service.Request;
-import edu.usc.cs.nsl.lookingglass.service.LookingGlassStreamServer;
-import edu.usc.cs.nsl.lookingglass.service.TracerouteService;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.googlecode.jsonrpc4j.JsonRpcClient;
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
-import edu.usc.cs.nsl.lookingglass.tracert.Query;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
+import java.net.URL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,14 +18,13 @@ import static org.junit.Assert.*;
  *
  * @author matt
  */
-public class LookingGlassServerTest {
+public class LookingGlassHttpServerTest {
     
     private int port = 1420;
-    private int threads = 1;
-    private LookingGlassStreamServer server;
+    private LookingGlassHttpServer server;
     private Request request;
     
-    public LookingGlassServerTest() {
+    public LookingGlassHttpServerTest() {
     }
     
     @Before
@@ -40,8 +32,10 @@ public class LookingGlassServerTest {
         //TracerouteService tracerouteService = Mockito.mock(TracerouteService.class);
         request = new Request("Comcast", "www.google.com", "http");
         
-        TracerouteService tracerouteService = new TracerouteServiceTestImpl(); 
-        server = new LookingGlassStreamServer(tracerouteService, port, threads);
+        TracerouteService tracerouteService = new TracerouteServiceTestImpl();
+        QueryProcessor queryProcessor = Mockito.mock(QueryProcessor.class);
+        
+        server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor);
         server.start();
     }
     
@@ -54,16 +48,17 @@ public class LookingGlassServerTest {
     /**
      * Test of run method, of class LookingGlassServer.
      */
-    //@Test
+    @Test
     public void testRemoteCall() throws Exception {
         System.out.println("remoteCall");
-        
-        JsonRpcClient jsonRpcClient = new JsonRpcClient(new ObjectMapper());
+
+        JsonRpcHttpClient client = new JsonRpcHttpClient(new URL("http://127.0.0.1:"+port+"/lg"));
+
         TracerouteService remoteService = ProxyUtil.createClientProxy(
-            TracerouteService.class.getClassLoader(),
-            TracerouteService.class, jsonRpcClient,
-            new Socket(InetAddress.getByName("127.0.0.1"), port));
-        
+                getClass().getClassLoader(),
+                TracerouteService.class,
+                client);
+
         boolean result = remoteService.submit(request);
         assertEquals(true, result);
     }

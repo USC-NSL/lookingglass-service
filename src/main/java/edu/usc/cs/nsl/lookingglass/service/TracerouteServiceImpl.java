@@ -1,7 +1,6 @@
 package edu.usc.cs.nsl.lookingglass.service;
 
 import edu.usc.cs.nsl.lookingglass.database.DBManager;
-import edu.usc.cs.nsl.lookingglass.tracert.LGManager;
 import edu.usc.cs.nsl.lookingglass.tracert.Query;
 import java.util.LinkedList;
 import org.apache.log4j.Logger;
@@ -27,20 +26,6 @@ public class TracerouteServiceImpl implements TracerouteService {
         this.queryProcessor = queryProcessor;
     }
     
-    public void start() throws Exception {
-        log.info("Starting Traceroute Service and Query Processor.");
-        queryProcessor.run();
-    }
-    
-    public void stop() throws Exception {
-        log.info("Shutting down Traceroute Service and Query Processor.");
-        queryProcessor.shutdown();
-    }
-
-    public boolean isRunning() {
-        return queryProcessor.isRunning();
-    }
-
     @Override
     public boolean submit(Request request) {
         
@@ -58,19 +43,28 @@ public class TracerouteServiceImpl implements TracerouteService {
                 if(serverName.equalsIgnoreCase("*")){
                     queries = dbManager.createQueriesFromAllServers();
                 } else {
-                    queries.add(dbManager.createQueryFromServer(serverName));
+                    Query query = dbManager.createQueryFromServer(serverName);
+                    if(query != null){
+                        queries.add(query);
+                    }
                 }
             } else if(type.equalsIgnoreCase("http")){
                 if(serverName.equalsIgnoreCase("*")){
                     queries = dbManager.createQueriesFromAllHttpServers();
                 } else {
-                    queries.add(dbManager.createHttpQueryFromServer(serverName));
+                    Query query = dbManager.createHttpQueryFromServer(serverName);
+                    if(query != null){
+                        queries.add(query);
+                    }
                 }
             } else if(type.equalsIgnoreCase("telnet")){
                 if(serverName.equalsIgnoreCase("*")){
                     queries = dbManager.createQueriesFromAllTelnetServers();
                 } else {
-                    queries.add(dbManager.createTelnetQueryFromServer(serverName));
+                    Query query = dbManager.createTelnetQueryFromServer(serverName);
+                    if(query != null){
+                        queries.add(query);
+                    }
                 }
             }
             

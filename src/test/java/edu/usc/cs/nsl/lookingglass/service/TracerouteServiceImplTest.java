@@ -50,16 +50,16 @@ public class TracerouteServiceImplTest {
         
         final TracerouteServiceImpl instance = new TracerouteServiceImpl(dbManager, queryProcessor);
         
-        new Thread() {
-            @Override
-            public void run() {
-                try { 
-                    instance.start();
-                } catch(Exception e){ System.err.println(e); }
-            }
-        }.start();
-        
-        Thread.sleep(1000); //let worker thread get started
+//        new Thread() {
+//            @Override
+//            public void run() {
+//                try { 
+//                    instance.start();
+//                } catch(Exception e){ System.err.println(e); }
+//            }
+//        }.start();
+//        
+//        Thread.sleep(1000); //let worker thread get started
          
         Request request1 = new Request("Comcast", "www.google.com", null);
         boolean result1 = instance.submit(request1);
@@ -86,6 +86,6 @@ public class TracerouteServiceImplTest {
         assertFalse(result4);
         Mockito.verifyZeroInteractions(dbManager, queryProcessor);
         
-        instance.stop();
+        //instance.stop();
     }
 }

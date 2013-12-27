@@ -9,12 +9,6 @@ package edu.usc.cs.nsl.lookingglass.service;
  * @author matt
  */
 public interface TracerouteService {
-
-    boolean isRunning();
-    
-    void start() throws Exception;
-    
-    void stop() throws Exception;
     
     boolean submit(Request request);
     

@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.net.InetAddress;
 import org.apache.log4j.Logger;
 
-public class LookingGlassServer 
+public class LookingGlassStreamServer 
 {
-    private static Logger log = Logger.getLogger(LookingGlassServer.class);
+    private static Logger log = Logger.getLogger(LookingGlassStreamServer.class);
     
     //http://stackoverflow.com/questions/14631502/jsonrpc4j-how-to-add-type-info-to-parameters
     
@@ -24,7 +24,7 @@ public class LookingGlassServer
      * @param port
      * @param maxThreads 
      */
-    public LookingGlassServer(TracerouteService tracerouteService, int port, int maxThreads) {
+    public LookingGlassStreamServer(TracerouteService tracerouteService, int port, int maxThreads) {
         this.tracerouteService = tracerouteService;
         this.port = port;
         this.maxThreads = maxThreads;
@@ -44,7 +44,7 @@ public class LookingGlassServer
         streamServer.start();
         log.info("Server started.");
         
-        tracerouteService.start();
+        //tracerouteService.start();
     }
     
     /**
@@ -55,7 +55,7 @@ public class LookingGlassServer
         log.info("Shutting down server");
         
         if(tracerouteService != null){
-            tracerouteService.stop();
+            //tracerouteService.stop();
         }
         
         if (streamServer != null && streamServer.isStarted()){

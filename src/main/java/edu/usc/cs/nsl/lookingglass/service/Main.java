@@ -67,7 +67,9 @@ public class Main {
         
         QueryProcessor queryProcessor = new QueryProcessor(lgManager);
         TracerouteService tracerouteService = new TracerouteServiceImpl(dbManager, queryProcessor);
-        final LookingGlassServer server = new LookingGlassServer(tracerouteService, port, maxThreads);
+        
+        //final LookingGlassServer server = new LookingGlassServer(tracerouteService, port, maxThreads);
+        final LookingGlassHttpServer server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor);
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
