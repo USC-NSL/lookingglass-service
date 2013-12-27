@@ -21,7 +21,7 @@ TracerouteService remoteService = ProxyUtil.createClientProxy(
   TracerouteService.class,
   client);
 
-Request request = new Request("Comcast", "www.google.com", "http"); 
+Request request = new Request("HURRICANE-AS6939-core1.zrh1.he.net", "www.google.com", "http"); 
 boolean result = remoteService.submit(request);
 ```
 
@@ -29,6 +29,6 @@ boolean result = remoteService.submit(request);
 ```python
 >>> import jsonrpclib
 >>> lg = jsonrpclib.Server('http://host:port/lg')
->>> req = request.Request('Comcast', 'www.google.com', 'http')
+>>> req = request.Request('HURRICANE-AS6939-core1.zrh1.he.net', 'www.google.com', 'http')
 >>> response = lg.submit(req);
 ```
