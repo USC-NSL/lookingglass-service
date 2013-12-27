@@ -7,8 +7,8 @@ lookingglass-service is a thin Java [JSON-RPC](http://en.wikipedia.org/wiki/JSON
 ##Client Examples
 
 Java
-```
-JsonRpcHttpClient client = new JsonRpcHttpClient(new URL("http://127.0.0.1:"+port+"/lg"));
+```java
+JsonRpcHttpClient client = new JsonRpcHttpClient(new URL("http://host:port/lg"));
 
 TracerouteService remoteService = ProxyUtil.createClientProxy(
   getClass().getClassLoader(),
@@ -20,7 +20,7 @@ boolean result = remoteService.submit(request);
 ```
 
 Python
-```
+```python
 >>> import jsonrpclib
 >>> lg = jsonrpclib.Server('http://host:port/lg')
 >>> req = request.Request('Comcast', 'www.google.com', 'http')
