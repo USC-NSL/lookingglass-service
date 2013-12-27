@@ -1,18 +1,32 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.usc.cs.nsl.lookingglass.service;
 
 import java.util.List;
 
 /**
  *
- * @author matt
+ * @author matt calder
  */
 public interface TracerouteService {
     
-    boolean submit(Request request);
+    /**
+     * 
+     * @param request
+     * @return a measurement id
+     */
+    int submit(Request request);
     
+    /**
+     * Finds all active Looking Glasses based on their most recent status.
+     * @return 
+     */
     List<String> active();
+    
+    /**
+     * Finds all active Looking Glasses in an AS.
+     * @param ASN only the AS Number, 
+     * @return
+     */
+    List<String> active(int asn);
+    
+    
 }

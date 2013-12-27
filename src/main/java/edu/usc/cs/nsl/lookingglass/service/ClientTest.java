@@ -22,9 +22,9 @@ public class ClientTest {
             new Socket(InetAddress.getByName("127.0.0.1"), 1420));
         
         Request request = new Request("*", "8.8.8.8", "http");
-        boolean result = remoteService.submit(request);
+        int measurementId = remoteService.submit(request);
         
-        System.out.println(result);
+        System.out.println(measurementId);
     }
     
 }

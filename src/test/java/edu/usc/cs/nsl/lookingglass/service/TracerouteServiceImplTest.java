@@ -49,41 +49,30 @@ public class TracerouteServiceImplTest {
         Mockito.when(dbManager.createQueryFromServer("Foobar")).thenReturn(null);
         
         final TracerouteServiceImpl instance = new TracerouteServiceImpl(dbManager, queryProcessor);
-        
-//        new Thread() {
-//            @Override
-//            public void run() {
-//                try { 
-//                    instance.start();
-//                } catch(Exception e){ System.err.println(e); }
-//            }
-//        }.start();
-//        
-//        Thread.sleep(1000); //let worker thread get started
          
         Request request1 = new Request("Comcast", "www.google.com", null);
-        boolean result1 = instance.submit(request1);
-        assertTrue(result1);
+        int result1 = instance.submit(request1);
+        assertTrue(result1 >= 0);
         Mockito.verify(dbManager).createQueryFromServer("Comcast");
         Mockito.verify(queryProcessor).submit(query);
         
         Request request2 = new Request("Comcast", "www.google.com", "http");
-        boolean result2 = instance.submit(request2);
-        assertTrue(result2);
+        int result2 = instance.submit(request2);
+        assertTrue(result2 >= 0);
         Mockito.verify(dbManager).createHttpQueryFromServer("Comcast");
         Mockito.verify(queryProcessor).submit(httpQuery);
         
         Request request3 = new Request("Comcast", "www.google.com", "telnet");
-        boolean result3 = instance.submit(request3);
-        assertTrue(result3);
+        int result3 = instance.submit(request3);
+        assertTrue(result3 >= 0);
         Mockito.verify(dbManager).createTelnetQueryFromServer("Comcast");
         Mockito.verify(queryProcessor).submit(telnetQuery);
         
         Mockito.reset(queryProcessor, dbManager);
         
         Request request4 = new Request("Comcast", "www.google.com", "foobar");
-        boolean result4 = instance.submit(request4);
-        assertFalse(result4);
+        int result4 = instance.submit(request4);
+        assertEquals(-1, result4);
         Mockito.verifyZeroInteractions(dbManager, queryProcessor);
         
         //instance.stop();

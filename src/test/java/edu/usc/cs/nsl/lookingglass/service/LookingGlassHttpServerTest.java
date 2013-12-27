@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package edu.usc.cs.nsl.lookingglass.service;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
@@ -17,7 +13,7 @@ import static org.junit.Assert.*;
 
 /**
  *
- * @author matt
+ * @author matt calder
  */
 public class LookingGlassHttpServerTest {
     
@@ -60,23 +56,27 @@ public class LookingGlassHttpServerTest {
                 TracerouteService.class,
                 client);
 
-        boolean result = remoteService.submit(request);
-        assertEquals(true, result);
+        int result = remoteService.submit(request);
+        assertEquals(100, result);
     }
     
     public class TracerouteServiceTestImpl implements TracerouteService {
+
+        public List<String> active(int asn) {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
 
         public List<String> active() {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
         
         @Override
-        public boolean submit(Request r1) {
+        public int submit(Request r1) {
             if (r1.getLgName().equals(request.getLgName()) &&
                 r1.getType().equals(request.getType())){
-                return true;
+                return 100;
             } else {
-                return false;
+                return -1;
             }
         }      
     }
