@@ -6,7 +6,7 @@ lookingglass-service is a thin Java [JSON-RPC](http://en.wikipedia.org/wiki/JSON
 
 ##Client Examples
 
-Java
+####Java
 ```java
 JsonRpcHttpClient client = new JsonRpcHttpClient(new URL("http://host:port/lg"));
 
@@ -19,7 +19,7 @@ Request request = new Request("Comcast", "www.google.com", "http");
 boolean result = remoteService.submit(request);
 ```
 
-Python
+####Python
 ```python
 >>> import jsonrpclib
 >>> lg = jsonrpclib.Server('http://host:port/lg')
