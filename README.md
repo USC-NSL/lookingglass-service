@@ -13,5 +13,6 @@ Python
 ```
 >>> import jsonrpclib
 >>> lg = jsonrpclib.Server('http://host:port/lg')
->>> response = lg.submit();
+>>> req = request.Request('Comcast', 'www.google.com', 'http')
+>>> response = lg.submit(req);
 ```
