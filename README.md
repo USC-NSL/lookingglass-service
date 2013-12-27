@@ -10,6 +10,28 @@ Lookingglass-service is a thin Java [JSON-RPC](http://en.wikipedia.org/wiki/JSON
 
 ##Available Methods
 
+__Submits a traceroute request__
+```json
+submit(request)
+```
+
+The request object must have three fields
+- lgName: the name of the looking glass to issue this traceroute to
+- target: the target for the traceroute. Note: This should be an ip. Hostnames often fail for looking glasses.
+- type: can be "http", "telnet", or empty string. Empty string will select the type for you.
+
+The response is an measurement id which can be used to retrieve status and results of traceroutes.
+
+__Returns a list of all active Looking Glass servers__
+```json
+active()
+```
+
+__Returns a list of active Looking Glass servers within the specified asn__
+```json
+active(asn)
+```
+
 ##Client Examples
 
 ####Java
