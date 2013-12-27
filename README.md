@@ -21,7 +21,7 @@ TracerouteService remoteService = ProxyUtil.createClientProxy(
   TracerouteService.class,
   client);
 
-Request request = new Request("HURRICANE-AS6939-core1.zrh1.he.net", "www.google.com", "http"); 
+Request request = new Request("HURRICANE-AS6939-core1.zrh1.he.net", "8.8.8.8", "http"); 
 boolean result = remoteService.submit(request);
 ```
 
@@ -29,6 +29,16 @@ boolean result = remoteService.submit(request);
 ```python
 >>> import jsonrpclib
 >>> lg = jsonrpclib.Server('http://host:port/lg')
->>> req = request.Request('HURRICANE-AS6939-core1.zrh1.he.net', 'www.google.com', 'http')
+>>> req = request.Request('HURRICANE-AS6939-core1.zrh1.he.net', '8.8.8.8', 'http')
 >>> response = lg.submit(req);
+```
+
+##Build and Run
+
+```bash
+$ mvn clean compile assembly:single
+```
+
+```bash
+$ java -jar target/LookingGlassService-1.0-SNAPSHOT-jar-with-dependencies.jar -config /path/to/lookingglass.conf
 ```
