@@ -42,16 +42,14 @@ TracerouteService remoteService = ProxyUtil.createClientProxy(
   TracerouteService.class,
   client);
 
-Request request = new Request("HURRICANE-AS6939-core1.zrh1.he.net", "8.8.8.8", "http"); 
-boolean result = remoteService.submit(request);
+boolean result = remoteService.submit("HURRICANE-AS6939-core1.zrh1.he.net", "8.8.8.8", "http");
 ```
 
 ####Python
 ```python
 >>> import jsonrpclib
 >>> lg = jsonrpclib.Server('http://host:port/lg')
->>> req = request.Request('HURRICANE-AS6939-core1.zrh1.he.net', '8.8.8.8', 'http')
->>> response = lg.submit(req);
+>>> response = lg.submit('HURRICANE-AS6939-core1.zrh1.he.net', '8.8.8.8', 'http')
 ```
 
 ##Build and Run
