@@ -10,10 +10,12 @@ public interface TracerouteService {
     
     /**
      * 
-     * @param request
+     * @param lgName
+     * @param target
+     * @param type
      * @return a measurement id
      */
-    int submit(Request request);
+    int submit(String lgName, String target, String type);
     
     /**
      * Finds all active Looking Glasses based on their most recent status.

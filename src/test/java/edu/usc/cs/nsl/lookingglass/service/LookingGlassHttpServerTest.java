@@ -18,28 +18,24 @@ import static org.junit.Assert.*;
 public class LookingGlassHttpServerTest {
     
     private int port = 1420;
-    private LookingGlassHttpServer server;
-    private Request request;
+    //private LookingGlassHttpServer server;
+    private String serverName;
+    private String target;
+    private String type;
     
     public LookingGlassHttpServerTest() {
+        serverName = "Comcast";
+        target = "www.google.com";
+        type = "http";
     }
     
     @Before
     public void setUp() throws Exception {
-        //TracerouteService tracerouteService = Mockito.mock(TracerouteService.class);
-        request = new Request("Comcast", "www.google.com", "http");
-        
-        TracerouteService tracerouteService = new TracerouteServiceTestImpl();
-        QueryProcessor queryProcessor = Mockito.mock(QueryProcessor.class);
-        
-        server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor);
-        server.start();
+       
     }
     
     @After
     public void tearDown() throws Exception {
-        server.stop();
-        request = null;
     }
 
     /**
@@ -49,6 +45,25 @@ public class LookingGlassHttpServerTest {
     public void testRemoteCall() throws Exception {
         System.out.println("remoteCall");
 
+        TracerouteService tracerouteService = new TracerouteServiceTestImpl();
+        QueryProcessor queryProcessor = Mockito.mock(QueryProcessor.class);
+        
+        final LookingGlassHttpServer server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor);
+        
+        Thread serverThread = new Thread(){
+            @Override
+            public void run() {
+                try {
+                    server.start();
+                } catch(Exception ex){
+                    throw new RuntimeException(ex);
+                }
+            } 
+        };
+        serverThread.start();
+        
+        Thread.sleep(1000); //lolh4x. sleep for a second to let server thread get going.
+        
         JsonRpcHttpClient client = new JsonRpcHttpClient(new URL("http://127.0.0.1:"+port+"/lg"));
 
         TracerouteService remoteService = ProxyUtil.createClientProxy(
@@ -56,8 +71,11 @@ public class LookingGlassHttpServerTest {
                 TracerouteService.class,
                 client);
 
-        int result = remoteService.submit(request);
+        int result = remoteService.submit(serverName, target, type);
         assertEquals(100, result);
+        
+        server.stop();
+        serverThread.join();  //wait for thread to die
     }
     
     public class TracerouteServiceTestImpl implements TracerouteService {
@@ -71,9 +89,9 @@ public class LookingGlassHttpServerTest {
         }
         
         @Override
-        public int submit(Request r1) {
-            if (r1.getLgName().equals(request.getLgName()) &&
-                r1.getType().equals(request.getType())){
+        public int submit(String thisServerName, String thisTarget, String thisType) {
+            if (thisServerName.equals(serverName) &&
+                thisType.equals(type)){
                 return 100;
             } else {
                 return -1;

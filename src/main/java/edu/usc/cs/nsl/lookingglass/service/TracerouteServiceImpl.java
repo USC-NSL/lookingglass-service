@@ -34,14 +34,12 @@ public class TracerouteServiceImpl implements TracerouteService {
     }
     
     @Override
-    public int submit(Request request) {
+    public int submit(String serverName, String target, String type) {
+        
+        String request = "serverName: "+serverName+" target: "+target+" type: "+type;
         
         try {
             log.info("Processing request: "+request);
-            
-            String type = request.getType();
-            String serverName = request.getLgName();
-            String target = request.getTarget();
             
             //TODO fix this LinkedList nonsense for god sake
             LinkedList<Query> queries = new LinkedList<Query>();

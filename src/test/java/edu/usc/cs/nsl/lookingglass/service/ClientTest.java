@@ -3,8 +3,6 @@ package edu.usc.cs.nsl.lookingglass.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
-import edu.usc.cs.nsl.lookingglass.service.Request;
-import edu.usc.cs.nsl.lookingglass.service.TracerouteService;
 import java.net.InetAddress;
 import java.net.Socket;
 
@@ -23,8 +21,7 @@ public class ClientTest {
             TracerouteService.class, jsonRpcClient,
             new Socket(InetAddress.getByName("127.0.0.1"), 1420));
         
-        Request request = new Request("*", "8.8.8.8", "http");
-        int measurementId = remoteService.submit(request);
+        int measurementId = remoteService.submit("*", "8.8.8.8", "http");
         
         System.out.println(measurementId);
     }

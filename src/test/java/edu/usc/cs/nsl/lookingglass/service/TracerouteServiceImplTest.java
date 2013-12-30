@@ -2,10 +2,8 @@ package edu.usc.cs.nsl.lookingglass.service;
 
 import edu.usc.cs.nsl.lookingglass.database.DBManager;
 import edu.usc.cs.nsl.lookingglass.tracert.HttpQuery;
-import edu.usc.cs.nsl.lookingglass.tracert.LGManager;
 import edu.usc.cs.nsl.lookingglass.tracert.Query;
 import edu.usc.cs.nsl.lookingglass.tracert.TelnetQuery;
-import java.util.LinkedList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,28 +48,24 @@ public class TracerouteServiceImplTest {
         
         final TracerouteServiceImpl instance = new TracerouteServiceImpl(dbManager, queryProcessor);
          
-        Request request1 = new Request("Comcast", "www.google.com", null);
-        int result1 = instance.submit(request1);
+        int result1 = instance.submit("Comcast", "www.google.com", null);
         assertTrue(result1 >= 0);
         Mockito.verify(dbManager).createQueryFromServer("Comcast");
         Mockito.verify(queryProcessor).submit(query);
         
-        Request request2 = new Request("Comcast", "www.google.com", "http");
-        int result2 = instance.submit(request2);
+        int result2 = instance.submit("Comcast", "www.google.com", "http");
         assertTrue(result2 >= 0);
         Mockito.verify(dbManager).createHttpQueryFromServer("Comcast");
         Mockito.verify(queryProcessor).submit(httpQuery);
         
-        Request request3 = new Request("Comcast", "www.google.com", "telnet");
-        int result3 = instance.submit(request3);
+        int result3 = instance.submit("Comcast", "www.google.com", "telnet");
         assertTrue(result3 >= 0);
         Mockito.verify(dbManager).createTelnetQueryFromServer("Comcast");
         Mockito.verify(queryProcessor).submit(telnetQuery);
         
         Mockito.reset(queryProcessor, dbManager);
         
-        Request request4 = new Request("Comcast", "www.google.com", "foobar");
-        int result4 = instance.submit(request4);
+        int result4 = instance.submit("Comcast", "www.google.com", "foobar");
         assertEquals(-1, result4);
         Mockito.verifyZeroInteractions(dbManager, queryProcessor);
         
