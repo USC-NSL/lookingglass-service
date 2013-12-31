@@ -1,5 +1,6 @@
 package edu.usc.cs.nsl.lookingglass.service;
 
+import edu.usc.cs.nsl.lookingglass.tracert.ClientThread;
 import edu.usc.cs.nsl.lookingglass.tracert.DomainInfo;
 import edu.usc.cs.nsl.lookingglass.tracert.HttpClientThread;
 import edu.usc.cs.nsl.lookingglass.tracert.HttpQuery;
@@ -8,21 +9,22 @@ import edu.usc.cs.nsl.lookingglass.tracert.Query;
 import edu.usc.cs.nsl.lookingglass.tracert.TelnetClientThread;
 import edu.usc.cs.nsl.lookingglass.tracert.TelnetQuery;
 import java.util.Date;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 
 /**
  *
- * @author matt
+ * @author matt calder
  */
 public class QueryProcessor {
     
     private static final String POISON_PILL = "POISON PILL";
+    private static final String THREADPOOL_NAME = "QueryProcessorThread";
     private static Logger log = Logger.getLogger(QueryProcessor.class);
     private BlockingQueue Q;
     private LGManager lgManager;
@@ -30,7 +32,8 @@ public class QueryProcessor {
     private int threadpoolSize = 20;
     private int qSize = 100;
     private int domainQueryTimeGap = 5*60*1000;
-    private ExecutorService executor;
+    //private ExecutorService executor;
+    private ThreadPoolExecutor executor;
     private boolean isRunning = false;
     
     /**
@@ -57,13 +60,78 @@ public class QueryProcessor {
     
     /**
      * 
+     * @param measurementId
+     * @return 
+     */
+    public boolean inQueue(int measurementId) {
+
+        /**
+         * The LinkedBlockingQueue implementation makes this pseudo-thread safe.
+         */
+        
+        for (Object o : Q) {
+            try {
+                Query query = (Query) o;
+                if (measurementId == query.getMeasurementId()) {
+                    return true;
+                }
+            } catch (ClassCastException ex) {
+                //if this is a string, POISON_PILL, then just continue
+                continue;
+            }
+        }
+
+        return false;
+
+    }
+    
+    /**
+     * Please use this method as a last resort.
+     * 
+     * @param measurementId
+     * @return 
+     */
+    public boolean isExecuting(int measurementId) {
+        
+        /**
+         * The LinkedBlockingQueue implementation makes this pseudo-thread safe.
+         */
+        
+        if (executor == null) {
+            return false;
+        }
+
+        BlockingQueue<Runnable> queue = executor.getQueue();
+        Iterator<Runnable> iter = queue.iterator();
+        
+        while(iter.hasNext()){
+            try {
+              ClientThread clientThread = (ClientThread)iter.next();             
+              if(measurementId == clientThread.getQuery().getMeasurementId()){
+                  return true;
+              }
+            } catch(ClassCastException ex){
+                //must have gotten unlucky and found the POISON_PILL!
+                continue;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 
      * @throws Exception 
      */
     public void run() throws Exception {
         
         log.info("Started QueryProcessor");
         
-        executor = Executors.newFixedThreadPool(threadpoolSize);
+        //executor = Executors.newFixedThreadPool(threadpoolSize, new QueryProcessorThreadFactory(THREADPOOL_NAME));
+        executor = new ThreadPoolExecutor(threadpoolSize, threadpoolSize,
+                0L, TimeUnit.MILLISECONDS, 
+                new LinkedBlockingQueue<Runnable>());
+        
         isRunning = true;
         
         while(true){
@@ -202,9 +270,9 @@ public class QueryProcessor {
      * 
      * @param executor 
      */
-    public void setExecutor(ExecutorService executor) {
-        this.executor = executor;
-    }
+    //public void setExecutor(ExecutorService executor) {
+    //    this.executor = executor;
+    // }
     
     /**
      * 
@@ -246,4 +314,18 @@ public class QueryProcessor {
     public boolean isRunning(){
         return isRunning;
     }
+    
+//    private class QueryProcessorThreadFactory implements ThreadFactory {
+//            
+//        private int counter = 0;
+//        private String prefix;
+//
+//        public QueryProcessorThreadFactory(String prefix) {
+//            this.prefix = prefix;
+//        }
+//        
+//        public Thread newThread(Runnable r) {
+//            return new Thread(r, prefix+'-'+counter++);
+//        }
+//    }
 }

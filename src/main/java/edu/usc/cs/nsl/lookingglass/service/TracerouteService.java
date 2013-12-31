@@ -30,5 +30,18 @@ public interface TracerouteService {
      */
     List<String> active(int asn);
     
+    /**
+     * 
+     * @param measurementId
+     * @return 
+     */
+    String status(int measurementId);
+    
+    /**
+     * 
+     * @param measurementId
+     * @return 
+     */
+    List<TracerouteResult> results(int measurementId);
     
 }

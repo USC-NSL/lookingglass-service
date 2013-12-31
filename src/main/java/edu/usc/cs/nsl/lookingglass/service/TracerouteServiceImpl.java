@@ -1,9 +1,11 @@
 package edu.usc.cs.nsl.lookingglass.service;
 
 import edu.usc.cs.nsl.lookingglass.database.DBManager;
+import edu.usc.cs.nsl.lookingglass.database.QueryLog;
 import edu.usc.cs.nsl.lookingglass.tracert.Query;
 import edu.usc.cs.nsl.lookingglass.tracert.TracerouteInfo;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -101,6 +103,73 @@ public class TracerouteServiceImpl implements TracerouteService {
     public List<String> active() {
         TracerouteInfo trInfo = new TracerouteInfo(dbManager);
         return trInfo.findWorkingVPs();
+    }
+    
+    /**
+     * 
+     * @param measurementId
+     * @return 
+     */
+    public List<TracerouteResult> results(int measurementId) {
+        
+        List<QueryLog> queries = dbManager.getMeasurements(measurementId);
+               
+        List<TracerouteResult> results = new ArrayList<TracerouteResult>();
+        for(QueryLog query : queries){
+            
+            TracerouteResult result = new TracerouteResult();
+            result.setLgName(query.getServerName());
+            result.setStatus(query.getState());
+            result.setTarget(query.getTarget());
+            
+            String parsedData = query.getParsedData();
+            String[] hopsArray = parsedData.split("\n");
+            List<String> hopsList = Arrays.asList(hopsArray);
+            result.setHops(hopsList);
+            
+            results.add(result);
+        }
+        
+        return results;
+    }
+
+    /**
+     * 
+     * @param measurementId
+     * @return 
+     */
+    public String status(int measurementId) {
+        
+        /**
+         * First check the queue.
+         */
+        if(queryProcessor.inQueue(measurementId)){
+            return "processing";
+        }
+        
+        /**
+         * Next we check the database
+         */
+        TracerouteInfo trInfo = new TracerouteInfo(dbManager);
+        String status = trInfo.getMeasurementStatus(measurementId);
+        
+        if(status.equals("not found")){
+            /**
+             * If not found in database, there is a small chance that it
+             * could be in the thread pool and the database hasn't been updated yet.
+             */
+            if(queryProcessor.isExecuting(measurementId)){
+                return "processing";
+            }  
+            
+            /**
+             * It hurts, but need to check the database again to confirm that the
+             * thread didn't start and finish processing while we were the database above.
+             */
+            status = trInfo.getMeasurementStatus(measurementId);
+        }
+        
+        return status;
     }
     
     /**

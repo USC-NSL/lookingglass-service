@@ -71,7 +71,7 @@ public class Main {
         //final LookingGlassServer server = new LookingGlassServer(tracerouteService, port, maxThreads);
         final LookingGlassHttpServer server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor);
         
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+        Runtime.getRuntime().addShutdownHook(new Thread("Server Bootstrap Thread") {
             @Override
             public void run() {
                 try {
