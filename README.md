@@ -31,6 +31,22 @@ __Retrieve active Looking Glass servers within the specified asn__
 active(asn)
 ```
 
+__Find status of measurement__
+
+May be one of, "processing", "not found", "unfinished" or "finished".
+```
+status(measurement_id)
+```
+
+__Retrieve results for measurement_id__
+
+If status is unfinished or processing then this may return an empty or incomplete list of results. Be sure to check that the status is "finished" before requesting results.
+```
+results(measurement_id)
+```
+
+
+
 ##Client Examples
 
 ####Java
@@ -59,7 +75,7 @@ $ mvn clean compile assembly:single
 ```
 
 ```bash
-$ java -jar target/LookingGlassService-1.0-SNAPSHOT-jar-with-dependencies.jar -config /path/to/lookingglass.conf
+$ java -jar target/lookingglass-service-1.0-SNAPSHOT-jar-with-dependencies.jar -config /path/to/lookingglass.conf
 ```
 
 ##Configuration
