@@ -58,14 +58,14 @@ TracerouteService remoteService = ProxyUtil.createClientProxy(
   TracerouteService.class,
   client);
 
-boolean result = remoteService.submit("HURRICANE-AS6939-core1.zrh1.he.net", "8.8.8.8", "http");
+int measurementId = remoteService.submit("HURRICANE-AS6939-core1.zrh1.he.net", "8.8.8.8", "http");
 ```
 
 ####Python
 ```python
 >>> import jsonrpclib
 >>> lg = jsonrpclib.Server('http://host:port/lg')
->>> response = lg.submit('HURRICANE-AS6939-core1.zrh1.he.net', '8.8.8.8', 'http')
+>>> measurement_id = lg.submit('HURRICANE-AS6939-core1.zrh1.he.net', '8.8.8.8', 'http')
 ```
 
 ##Build and Run
