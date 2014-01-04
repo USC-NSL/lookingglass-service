@@ -31,6 +31,11 @@ __Retrieve active Looking Glass servers within the specified asn__
 active(asn)
 ```
 
+__Retrieve the ASes with active Looking Glass servers__
+```
+ases()
+```
+
 __Find status of measurement__
 
 May be one of, "processing", "not found", "unfinished" or "finished".
