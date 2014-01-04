@@ -6,8 +6,10 @@ import edu.usc.cs.nsl.lookingglass.tracert.Query;
 import edu.usc.cs.nsl.lookingglass.tracert.TracerouteInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
@@ -195,6 +197,32 @@ public class TracerouteServiceImpl implements TracerouteService {
        return matches;
     }
 
+    /**
+     * 
+     * @return 
+     */
+    @Override
+    public Set<Integer> ases() {
+        
+        Set<Integer> asSet = new HashSet<Integer>();
+        
+        List<String> activeLgNames = active();
+        for(String lgName : activeLgNames){
+            Matcher matcher = asPattern.matcher(lgName);
+            if(matcher.find()){
+                String asString = matcher.group();   //return first match for now
+                try {
+                    Integer asn = Integer.parseInt(asString.substring(2));
+                    asSet.add(asn);
+                } catch(Exception e){
+                    log.error("Got error parsing ASN out of "+asString, e);
+                }
+            }
+        }
+        
+        return asSet;
+    }
+    
     public DBManager getDbManager() {
         return dbManager;
     }

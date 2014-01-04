@@ -1,6 +1,6 @@
 package edu.usc.cs.nsl.lookingglass.service;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  *
@@ -21,14 +21,14 @@ public interface TracerouteService {
      * Finds all active Looking Glasses based on their most recent status.
      * @return 
      */
-    List<String> active();
+    Collection<String> active();
     
     /**
      * Finds all active Looking Glasses in an AS.
      * @param ASN only the AS Number, 
      * @return
      */
-    List<String> active(int asn);
+    Collection<String> active(int asn);
     
     /**
      * 
@@ -39,9 +39,15 @@ public interface TracerouteService {
     
     /**
      * 
+     * @return 
+     */
+    Collection<Integer> ases();
+    
+    /**
+     * 
      * @param measurementId
      * @return 
      */
-    List<TracerouteResult> results(int measurementId);
+    Collection<TracerouteResult> results(int measurementId);
     
 }

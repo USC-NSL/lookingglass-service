@@ -95,6 +95,10 @@ public class LookingGlassHttpServerTest {
         public String status(int measurementId) {
             throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
+
+        public List<Integer> ases() {
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
         
         @Override
         public int submit(String thisServerName, String thisTarget, String thisType) {
