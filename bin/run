@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]; then
+   echo "Usage: config-file"
+   exit 1
+fi
+
+JAVA=$(which java)
+BASE=$HOME/lookingglass-service
+JAR=$(ls $BASE/CURRENT/lookingglass-service*.jar)
+
+nohup $JAVA -Xms128m -Xmx512m -jar $JAR -config $1 &> $BASE/log </dev/null &
+echo $! > $BASE/app.pid

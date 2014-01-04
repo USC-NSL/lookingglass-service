@@ -8,6 +8,7 @@ fi
 #initialize ssh environment variables
 source ~/.ssh/environment
 
+app="lookingglass-service"
 host=$1
 
 script_dir=$(dirname $0)
@@ -18,9 +19,9 @@ echo "Building..."
 mvn clean compile assembly:single
 
 cd target
-jar=$(ls lookingglass-*.jar)
-version=$(echo $jar | cut -d '-' -f 2)
-snapshot=$(echo $jar | cut -d '-' -f 3)
+jar=$(ls $app*.jar)
+version=$(echo $jar | cut -d '-' -f 3)
+snapshot=$(echo $jar | cut -d '-' -f 4)
 
 if [ "$snapshot" == "SNAPSHOT" ]; then
    dir="$version-SNAPSHOT"
@@ -28,12 +29,23 @@ else
    dir="$version"
 fi
 
-remote_dir="lookingglass/$dir"
+remote_dir="$app/$dir"
 
 #create remote directory structure if it doesn't exist. create symlink to CURRENT
-cmd="if [ ! -d $remote_dir ]; then mkdir --parents $remote_dir; fi; rm -f lookingglass/CURRENT; ln -s ~/$remote_dir lookingglass/CURRENT;"
+cmd="if [ ! -d $remote_dir ]; then mkdir --parents $remote_dir; fi; rm -f $app/CURRENT; ln -s ~/$remote_dir $app/CURRENT;"
 ssh $host $cmd
-    
+
+#check that config file and run are also on the server
+if ssh $host test ! -e "$app/run" -a ! -e "$app/$app.conf"; then
+    echo "run script and/or $app-config have not been configured! Exiting."
+    exit 1
+fi
+
 #perform upload
 echo "uploading $jar to $host:$remote_dir"
 scp $jar $host:$remote_dir
+
+#restart
+echo "restarting $app"
+ssh $host "pkill -f $app"
+ssh $host "$app/run $app/$app.conf"
