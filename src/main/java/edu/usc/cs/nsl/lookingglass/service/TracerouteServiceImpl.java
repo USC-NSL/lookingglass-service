@@ -213,6 +213,12 @@ public class TracerouteServiceImpl implements TracerouteService {
                 String asString = matcher.group();   //return first match for now
                 try {
                     Integer asn = Integer.parseInt(asString.substring(2));
+                    
+                    //filter out all reserved AS numbers
+                    if (asn == 0){
+                        continue;
+                    }
+                    
                     asSet.add(asn);
                 } catch(Exception e){
                     log.error("Got error parsing ASN out of "+asString, e);
