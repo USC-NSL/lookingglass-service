@@ -15,33 +15,60 @@ __Submits a traceroute request__
 submit(lgName, target, type)
 ```
 
-- lgName: the name of the looking glass to issue this traceroute to
-- target: the target for the traceroute. Note: This should be an ip. Hostnames often fail for looking glasses.
-- type: can be "http", "telnet", or empty string. Empty string will select the type for you.
+Arguments:
+- lgName (string): the name of the looking glass to issue this traceroute to
+- target (string): the target for the traceroute. Note: This should be an ip. Hostnames often fail for looking glasses.
+- type (string): can be "http", "telnet", or empty string. Empty string will select the type for you.
 
-The response is an measurement id which can be used to retrieve status and results of traceroutes.
+Returns:
+- measurement_id (integer): an id which can be used to retrieve status and results of traceroutes
 
 __Retrieve all active Looking Glass servers__
 ```
 active()
 ```
 
+Arguments:
+None
+
+Returns:
+- lg_list (list of strings): a list of the active looking glass servers
+
 __Retrieve active Looking Glass servers within the specified asn__
 ```
 active(asn)
 ```
+
+Arguments:
+- asn (integer): an autonomous system number
+
+Returns:
+- lg_list (list of strings): a list of the active looking glass servers in the specified AS
+
 
 __Retrieve the ASes with active Looking Glass servers__
 ```
 ases()
 ```
 
+Arguments:
+None
+
+Returns:
+- as_list (list of integers): a list of the ASes with active Looking Glass servers
+
 __Find status of measurement__
 
-May be one of, "processing", "not found", "unfinished" or "finished".
 ```
 status(measurement_id)
 ```
+
+Arguments:
+- measurement_id (integer): an identifier for a measurement
+
+Returns:
+- status_value (string): May be one of, "processing", "not found", "unfinished" or "finished"
+
 
 __Retrieve results for measurement_id__
 
@@ -50,7 +77,11 @@ If status is unfinished or processing then this may return an empty or incomplet
 results(measurement_id)
 ```
 
+Arguments:
+- measurement_id (integer): an identifier for a measurement
 
+Returns:
+- result_list (list of lists):
 
 ##Client Examples
 
