@@ -67,7 +67,7 @@ Arguments:
 - measurement_id (integer): an identifier for a measurement
 
 Returns:
-- status_value (string): May be one of, "processing", "not found", "unfinished" or "finished"
+- status_value (string): May be one of, "processing", "not found", "unfinished", "finished", "failed" or "some failed".
 
 
 __Retrieve results for measurement_id__
