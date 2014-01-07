@@ -110,7 +110,8 @@ public class QueryProcessor {
               if(measurementId == clientThread.getQuery().getMeasurementId()){
                   return true;
               }
-            } catch(ClassCastException ex){
+            } catch(Exception ex){
+                log.error("Got exception while loking for measurement id "+measurementId+" in executor pool", ex);
                 //must have gotten unlucky and found the POISON_PILL!
                 continue;
             }

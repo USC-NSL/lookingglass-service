@@ -103,8 +103,10 @@ public class TracerouteServiceImpl implements TracerouteService {
     
     @Override
     public List<String> active() {
-        TracerouteInfo trInfo = new TracerouteInfo(dbManager);
-        return trInfo.findWorkingVPs();
+        log.info("Process request for active looking glasses");
+        //TracerouteInfo trInfo = new TracerouteInfo(dbManager);
+        //return trInfo.findWorkingVPs();
+        return dbManager.activeLGs();
     }
     
     /**
@@ -113,6 +115,8 @@ public class TracerouteServiceImpl implements TracerouteService {
      * @return 
      */
     public List<TracerouteResult> results(int measurementId) {
+        
+        log.info("Processing request for results of measurementId: "+measurementId);
         
         List<QueryLog> queries = dbManager.getMeasurements(measurementId);
                
@@ -142,6 +146,8 @@ public class TracerouteServiceImpl implements TracerouteService {
      */
     public String status(int measurementId) {
         
+        log.info("Processing request for status of measurementId: "+measurementId);
+        
         /**
          * First check the queue.
          */
@@ -154,6 +160,7 @@ public class TracerouteServiceImpl implements TracerouteService {
          */
         TracerouteInfo trInfo = new TracerouteInfo(dbManager);
         String status = trInfo.getMeasurementStatus(measurementId);
+        log.info("Measurement Id: "+measurementId+" DB query 1 status was "+status);
         
         if(status.equals("not found")){
             /**
@@ -161,16 +168,19 @@ public class TracerouteServiceImpl implements TracerouteService {
              * could be in the thread pool and the database hasn't been updated yet.
              */
             if(queryProcessor.isExecuting(measurementId)){
+                log.info("Found "+measurementId+" in QueryProcessor");
                 return "processing";
-            }  
+            }
             
             /**
              * It hurts, but need to check the database again to confirm that the
              * thread didn't start and finish processing while we were the database above.
              */
             status = trInfo.getMeasurementStatus(measurementId);
+            log.info("Measurement Id: "+measurementId+" DB query 2 status was "+status);
         }
         
+        log.info("Returing Measurement Id: "+measurementId+" status as "+status);
         return status;
     }
     
@@ -181,6 +191,7 @@ public class TracerouteServiceImpl implements TracerouteService {
      */
     @Override
     public List<String> active(int asn) {
+       log.info("Processing request for active LGs in ASN "+asn);
        
        List<String> activeLgNames = active();
        Pattern p = Pattern.compile("AS"+asn);
@@ -203,6 +214,7 @@ public class TracerouteServiceImpl implements TracerouteService {
      */
     @Override
     public Set<Integer> ases() {
+        log.info("Processing request for ASes");
         
         Set<Integer> asSet = new HashSet<Integer>();
         
