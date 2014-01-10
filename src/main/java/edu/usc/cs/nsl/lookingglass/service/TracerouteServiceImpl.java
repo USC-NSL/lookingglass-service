@@ -3,7 +3,6 @@ package edu.usc.cs.nsl.lookingglass.service;
 import edu.usc.cs.nsl.lookingglass.database.DBManager;
 import edu.usc.cs.nsl.lookingglass.database.QueryLog;
 import edu.usc.cs.nsl.lookingglass.tracert.Query;
-import edu.usc.cs.nsl.lookingglass.tracert.TracerouteInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -104,8 +103,6 @@ public class TracerouteServiceImpl implements TracerouteService {
     @Override
     public List<String> active() {
         log.info("Process request for active looking glasses");
-        //TracerouteInfo trInfo = new TracerouteInfo(dbManager);
-        //return trInfo.findWorkingVPs();
         return dbManager.activeLGs();
     }
     
@@ -125,7 +122,7 @@ public class TracerouteServiceImpl implements TracerouteService {
             
             TracerouteResult result = new TracerouteResult();
             result.setLgName(query.getServerName());
-            result.setStatus(query.getState());
+            result.setStatus(databaseStatusToService(query.getState()));
             result.setTarget(query.getTarget());
             
             String parsedData = query.getParsedData();
@@ -158,8 +155,7 @@ public class TracerouteServiceImpl implements TracerouteService {
         /**
          * Next we check the database
          */
-        TracerouteInfo trInfo = new TracerouteInfo(dbManager);
-        String status = trInfo.getMeasurementStatus(measurementId);
+        String status = getDatabaseStatus(measurementId);
         log.info("Measurement Id: "+measurementId+" DB query 1 status: "+status);
         
         if(status.equals("not found")){
@@ -176,12 +172,66 @@ public class TracerouteServiceImpl implements TracerouteService {
              * It hurts, but need to check the database again to confirm that the
              * thread didn't start and finish processing while we were the database above.
              */
-            status = trInfo.getMeasurementStatus(measurementId);
+            status = getDatabaseStatus(measurementId);
             log.info("Measurement Id: "+measurementId+" DB query 2 status: "+status);
         }
         
         log.info("Returning Measurement Id: "+measurementId+" status as: "+status);
         return status;
+    }
+    
+    /**
+     * 
+     * @author matt calder
+     * @param measurementId
+     * @return 
+     */
+    public String getDatabaseStatus(int measurementId){
+        
+        List<String> selectFields = new ArrayList<String>();
+        selectFields.add("intKey");
+        selectFields.add("state");
+        
+        List<String> whereClauses = new ArrayList<String>();
+        whereClauses.add("measurement_id = "+measurementId);
+        
+        List<QueryLog> queryLogs = dbManager.findQueryLog(selectFields, whereClauses);
+        
+        if(queryLogs.isEmpty()){
+            return "not found";
+        }
+        
+        /**
+         * We count how many failures we see to determine whether this is a 
+         * complete failure or a partial failure.
+         */
+        int failCount = 0; 
+        
+        for(QueryLog queryLog : queryLogs){
+            String state = queryLog.getState();
+            int id = queryLog.getIdKey();
+            
+            log.info("mId "+measurementId+" id "+id+" status "+state);
+            
+            if(state.equalsIgnoreCase("Unfinished")){
+                //if even one is incomplete then the measurement is unfinished
+                return "unfinished";
+            } else if(state.equalsIgnoreCase("Fail")){
+                failCount++;
+            }
+        }
+        
+        if(failCount > 0){
+            //we have at least one failure
+            if(failCount == queryLogs.size()){
+                return "failed";
+            } else {
+                //must be some failed and some have not
+                return "some failed";
+            }
+        } else {
+            return "finished";
+        }
     }
     
     /**
@@ -239,6 +289,19 @@ public class TracerouteServiceImpl implements TracerouteService {
         }
         
         return asSet;
+    }
+    
+    public String databaseStatusToService(String dbStatus){
+        if(dbStatus.equalsIgnoreCase("Success")){
+            return "finished";
+        } else if(dbStatus.equalsIgnoreCase("Fail")){
+            return "failed";
+        } else if(dbStatus.equalsIgnoreCase("Unfinished")){
+            return "unfinished";
+        } else {
+            log.error("Got unknown dbStatus: "+dbStatus);
+            return null;
+        }
     }
     
     public DBManager getDbManager() {
