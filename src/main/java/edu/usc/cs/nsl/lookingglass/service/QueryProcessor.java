@@ -10,12 +10,16 @@ import edu.usc.cs.nsl.lookingglass.tracert.TelnetClientThread;
 import edu.usc.cs.nsl.lookingglass.tracert.TelnetQuery;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import org.apache.log4j.Logger;
+import org.eclipse.jetty.util.ConcurrentHashSet;
 
 /**
  *
@@ -24,17 +28,18 @@ import org.apache.log4j.Logger;
 public class QueryProcessor {
     
     private static final String POISON_PILL = "POISON PILL";
-    private static final String THREADPOOL_NAME = "QueryProcessorThread";
     private static Logger log = Logger.getLogger(QueryProcessor.class);
     private BlockingQueue Q;
     private LGManager lgManager;
+    private Set<Object> processing;
     private long queuePollTimeout = 1000;
-    private int threadpoolSize = 20;
+    private int threadpoolSize = 30;
     private int qSize = 100;
     private int domainQueryTimeGap = 5*60*1000;
     //private ExecutorService executor;
     private ThreadPoolExecutor executor;
-    private boolean isRunning = false;
+    private boolean isRunning;
+    private Lock lock;
     
     /**
      * 
@@ -42,8 +47,11 @@ public class QueryProcessor {
      */
     public QueryProcessor(LGManager lgManager) {
         this.lgManager = lgManager;
+        this.isRunning = false;
         //Q = new ArrayBlockingQueue(qSize);
         Q = new LinkedBlockingQueue();
+        processing = new ConcurrentHashSet<Object>();
+        lock = new ReentrantLock();
     }
     
     /**
@@ -55,7 +63,13 @@ public class QueryProcessor {
         if(!isRunning){
             throw new RuntimeException("QueryProcessor is not running.");
         }
-        return Q.add(query);
+        
+        lock.lock();
+        try {
+            return Q.add(query);
+        } finally {
+            lock.unlock();
+        }
     }
     
     /**
@@ -65,24 +79,41 @@ public class QueryProcessor {
      */
     public boolean inQueue(int measurementId) {
 
-        /**
-         * The LinkedBlockingQueue implementation makes this pseudo-thread safe.
-         */
-        
-        for (Object o : Q) {
-            try {
-                Query query = (Query) o;
-                if (measurementId == query.getMeasurementId()) {
-                    return true;
+        lock.lock();
+        try {
+            /**
+             * The LinkedBlockingQueue implementation makes this pseudo-thread
+             * safe.
+             */
+            log.info("Examining " + Q.size() + " queue entries");
+            for (Object o : Q) {
+                try {
+                    Query query = (Query) o;
+                    log.info("Checking " + query);
+                    if (measurementId == query.getMeasurementId()) {
+                        return true;
+                    }
+                } catch (ClassCastException ex) {
+                    //if this is a string, POISON_PILL, then just continue
+                    log.error("Got exception while looking for measurement id " + measurementId + " in processing queue", ex);
+                    continue;
                 }
-            } catch (ClassCastException ex) {
-                //if this is a string, POISON_PILL, then just continue
-                continue;
             }
+            
+            for(Object o : processing){
+                if(o instanceof Query){
+                    Query q = (Query)o;
+                    if(q.getMeasurementId() == measurementId){
+                        return true;
+                    }
+                }
+            }
+            
+            log.info("Now checking LGManager");
+            return lgManager.contains(measurementId);
+        } finally {
+            lock.unlock();
         }
-
-        return false;
-
     }
     
     /**
@@ -96,28 +127,36 @@ public class QueryProcessor {
         /**
          * The LinkedBlockingQueue implementation makes this pseudo-thread safe.
          */
-        
         if (executor == null) {
             return false;
         }
 
-        BlockingQueue<Runnable> queue = executor.getQueue();
-        Iterator<Runnable> iter = queue.iterator();
-        
-        while(iter.hasNext()){
-            try {
-              ClientThread clientThread = (ClientThread)iter.next();             
-              if(measurementId == clientThread.getQuery().getMeasurementId()){
-                  return true;
-              }
-            } catch(Exception ex){
-                log.error("Got exception while loking for measurement id "+measurementId+" in executor pool", ex);
-                //must have gotten unlucky and found the POISON_PILL!
-                continue;
+        lock.lock();
+        try {
+
+            BlockingQueue<Runnable> queue = executor.getQueue();
+            Iterator<Runnable> iter = queue.iterator();
+
+            log.info("Examining " + queue.size() + " queue entries");
+            while (iter.hasNext()) {
+                try {
+                    ClientThread clientThread = (ClientThread) iter.next();
+                    log.info("Checking " + clientThread);
+
+                    if (measurementId == clientThread.getQuery().getMeasurementId()) {
+                        return true;
+                    }
+                } catch (Exception ex) {
+                    log.error("Got exception while looking for measurement id " + measurementId + " in executor pool", ex);
+                    //must have gotten unlucky and found the POISON_PILL!
+                    continue;
+                }
             }
+
+            return false;
+        } finally {
+            lock.unlock();
         }
-        
-        return false;
     }
     
     /**
@@ -135,25 +174,33 @@ public class QueryProcessor {
         
         isRunning = true;
         
-        while(true){
-            
+        while (true) {
+
             Object object = Q.poll(queuePollTimeout, TimeUnit.MILLISECONDS);
             
-            if(object != null) {
-                if(object instanceof String){
+            if (object != null) {
+                
+                processing.add(object);
+                
+                if (object instanceof String) {
                     //this must be poison pill
+                    processing.remove(object);
                     log.info("Got poison pill. Shutting down query processor");
                     executor.shutdown();
                     isRunning = false; //should already be set
                     break;
                 } else {
                     /**
-                     * This must be a legit traceroute query so
-                     * add to the lgManager
+                     * This must be a legit traceroute query so add to the
+                     * lgManager
                      */
-                    Query query = (Query)object;
-                    log.info("Adding query "+query+" to LGManager");
-                    lgManager.addQuery(query);
+                    Query query = (Query) object;
+                    
+                    /**
+                     * Adding this to the lgManager requires database calls so
+                     * we put it on a thread to process
+                     */
+                    new Thread(new AddQueryRunnable(query)).start();
                 }
             } else {
                 //log.debug("Q poll timeout");
@@ -178,11 +225,9 @@ public class QueryProcessor {
          * doesn't do anything very important and should be replaced.
          */
         
-        //log.debug("runAvailableQueries");
-        
-        for (String domain : lgManager.getQueries().keySet()) {
+        for (String domain : lgManager.getDomains()) {
 
-            if (lgManager.getQueries().get(domain).size() == 0) {
+            if (lgManager.numberOfQueries(domain) == 0) {
                 continue;
             }
 
@@ -195,7 +240,7 @@ public class QueryProcessor {
 
             boolean canStart = false;
             
-            DomainInfo domainInfo = lgManager.getDomainInfos().get(domain);
+            DomainInfo domainInfo = lgManager.getDomainInfo(domain);
             if (domainInfo == null) {
                 log.error("Error! domain was not found in domainInfos: " + domain);
                 continue;
@@ -207,12 +252,17 @@ public class QueryProcessor {
             if (canStart) {
                 domainInfo.start(); //marks this as being in the thread pool
                 
-                Query query = lgManager.removeQuery(domain);
+                lock.lock();
+                try {
+                    Query query = lgManager.removeQuery(domain);
 
-                if (query instanceof HttpQuery) {
-                    executor.execute(new HttpClientThread((HttpQuery) query, lgManager));
-                } else if (query instanceof TelnetQuery) {
-                    executor.execute(new TelnetClientThread((TelnetQuery) query, lgManager));
+                    if (query instanceof HttpQuery) {
+                        executor.execute(new HttpClientThread((HttpQuery) query, lgManager));
+                    } else if (query instanceof TelnetQuery) {
+                        executor.execute(new TelnetClientThread((TelnetQuery) query, lgManager));
+                    }
+                } finally {
+                    lock.unlock();
                 }
             }
             
@@ -269,14 +319,6 @@ public class QueryProcessor {
     
     /**
      * 
-     * @param executor 
-     */
-    //public void setExecutor(ExecutorService executor) {
-    //    this.executor = executor;
-    // }
-    
-    /**
-     * 
      * @return 
      */
     public ExecutorService getExecutor() {
@@ -316,17 +358,17 @@ public class QueryProcessor {
         return isRunning;
     }
     
-//    private class QueryProcessorThreadFactory implements ThreadFactory {
-//            
-//        private int counter = 0;
-//        private String prefix;
-//
-//        public QueryProcessorThreadFactory(String prefix) {
-//            this.prefix = prefix;
-//        }
-//        
-//        public Thread newThread(Runnable r) {
-//            return new Thread(r, prefix+'-'+counter++);
-//        }
-//    }
+    private class AddQueryRunnable implements Runnable {
+
+        private Query query;
+        public AddQueryRunnable(Query query) {
+            this.query = query;
+        }
+        
+        public void run() {
+            log.info("Adding query " + query + " to LGManager");
+            lgManager.addQuery(query);
+            processing.remove(query);
+        }
+    }
 }

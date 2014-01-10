@@ -149,7 +149,7 @@ public class TracerouteServiceImpl implements TracerouteService {
         log.info("Processing request for status of measurementId: "+measurementId);
         
         /**
-         * First check the queue.
+         * First check the queue
          */
         if(queryProcessor.inQueue(measurementId)){
             return "processing";
@@ -160,7 +160,7 @@ public class TracerouteServiceImpl implements TracerouteService {
          */
         TracerouteInfo trInfo = new TracerouteInfo(dbManager);
         String status = trInfo.getMeasurementStatus(measurementId);
-        log.info("Measurement Id: "+measurementId+" DB query 1 status was "+status);
+        log.info("Measurement Id: "+measurementId+" DB query 1 status: "+status);
         
         if(status.equals("not found")){
             /**
@@ -177,10 +177,10 @@ public class TracerouteServiceImpl implements TracerouteService {
              * thread didn't start and finish processing while we were the database above.
              */
             status = trInfo.getMeasurementStatus(measurementId);
-            log.info("Measurement Id: "+measurementId+" DB query 2 status was "+status);
+            log.info("Measurement Id: "+measurementId+" DB query 2 status: "+status);
         }
         
-        log.info("Returing Measurement Id: "+measurementId+" status as "+status);
+        log.info("Returning Measurement Id: "+measurementId+" status as: "+status);
         return status;
     }
     

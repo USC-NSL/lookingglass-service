@@ -1,12 +1,10 @@
 package edu.usc.cs.nsl.lookingglass.service;
 
-import edu.usc.cs.nsl.lookingglass.service.QueryProcessor;
 import edu.usc.cs.nsl.lookingglass.tracert.HttpQuery;
 import edu.usc.cs.nsl.lookingglass.tracert.LGManager;
 import edu.usc.cs.nsl.lookingglass.tracert.Query;
-import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.SynchronousQueue;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +26,8 @@ public class QueryProcessorTest {
     public void setUp() {
         lgManager = Mockito.mock(LGManager.class);
         
-        ConcurrentHashMap queries = new ConcurrentHashMap<String, LinkedList<Query>>();
-        Mockito.when(lgManager.getQueries()).thenReturn(queries);
+        Collection<String> domains = new ArrayList<String>();
+        Mockito.when(lgManager.getDomains()).thenReturn(domains);
     }
     
     @After
@@ -108,7 +106,7 @@ public class QueryProcessorTest {
          * The Q should timeout 4 times, so we check that lgManager.getQueries 
          * is called at least 3 times since the timing is rough.
          */
-        Mockito.verify(lgManager, Mockito.atLeast(3)).getQueries();
+        Mockito.verify(lgManager, Mockito.atLeast(3)).getDomains();
         
         instance.shutdown();
     }
