@@ -81,7 +81,7 @@ Arguments:
 - measurement_id (integer): an identifier for a measurement
 
 Returns:
-- result_list (list of lists):
+- result_list (list of objects): object format is {'lgName': string, 'status': string, 'target': string, 'hops': list of strings}.
 
 ##Client Examples
 
