@@ -5,12 +5,9 @@ import edu.usc.cs.nsl.lookingglass.database.QueryLog;
 import edu.usc.cs.nsl.lookingglass.tracert.Query;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 /**
@@ -20,8 +17,7 @@ import org.apache.log4j.Logger;
 public class TracerouteServiceImpl implements TracerouteService {
     
     private final static Logger log = Logger.getLogger(TracerouteServiceImpl.class);
-    
-    private Pattern asPattern;
+
     private QueryProcessor queryProcessor;
     private DBManager dbManager;
     
@@ -33,7 +29,6 @@ public class TracerouteServiceImpl implements TracerouteService {
     public TracerouteServiceImpl(DBManager dbManager, QueryProcessor queryProcessor) {
         this.dbManager = dbManager;
         this.queryProcessor = queryProcessor;
-        this.asPattern = Pattern.compile("AS[0-9]+");
     }
     
     @Override
@@ -240,22 +235,9 @@ public class TracerouteServiceImpl implements TracerouteService {
      * @return 
      */
     @Override
-    public List<String> active(int asn) {
+    public Collection<String> active(int asn) {
        log.info("Processing request for active LGs in ASN "+asn);
-       
-       List<String> activeLgNames = active();
-       Pattern p = Pattern.compile("AS"+asn);
-       
-       List<String> matches = new ArrayList<String>();
-       
-       for(String lgName : activeLgNames){
-            Matcher matcher = p.matcher(lgName);
-            if(matcher.find()){
-                matches.add(lgName);
-            }
-       }
-       
-       return matches;
+       return dbManager.getASMapping().get(asn);
     }
 
     /**
@@ -263,32 +245,9 @@ public class TracerouteServiceImpl implements TracerouteService {
      * @return 
      */
     @Override
-    public Set<Integer> ases() {
+    public Collection<Integer> ases() {
         log.info("Processing request for ASes");
-        
-        Set<Integer> asSet = new HashSet<Integer>();
-        
-        List<String> activeLgNames = active();
-        for(String lgName : activeLgNames){
-            Matcher matcher = asPattern.matcher(lgName);
-            if(matcher.find()){
-                String asString = matcher.group();   //return first match for now
-                try {
-                    Integer asn = Integer.parseInt(asString.substring(2));
-                    
-                    //filter out all reserved AS numbers
-                    if (asn == 0){
-                        continue;
-                    }
-                    
-                    asSet.add(asn);
-                } catch(Exception e){
-                    log.error("Got error parsing ASN out of "+asString, e);
-                }
-            }
-        }
-        
-        return asSet;
+        return dbManager.getASMapping().keySet();
     }
     
     public String databaseStatusToService(String dbStatus){
