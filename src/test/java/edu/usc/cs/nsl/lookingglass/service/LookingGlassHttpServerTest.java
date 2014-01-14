@@ -3,7 +3,9 @@ package edu.usc.cs.nsl.lookingglass.service;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,8 +49,10 @@ public class LookingGlassHttpServerTest {
 
         TracerouteService tracerouteService = new TracerouteServiceTestImpl();
         QueryProcessor queryProcessor = Mockito.mock(QueryProcessor.class);
+        Map<String,String> authMap = new HashMap<String, String>();
+        authMap.put("test", "test");
         
-        final LookingGlassHttpServer server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor);
+        final LookingGlassHttpServer server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor, authMap);
         
         Thread serverThread = new Thread(){
             @Override
@@ -64,8 +68,15 @@ public class LookingGlassHttpServerTest {
         
         Thread.sleep(1000); //lolh4x. sleep for a second to let server thread get going.
         
-        JsonRpcHttpClient client = new JsonRpcHttpClient(new URL("http://127.0.0.1:"+port+"/lg"));
+        String username = "test";
+        String password = "test";
+        String userpass = username + ":" + password;
+        String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes());
+        Map<String,String> headers = new HashMap<String, String>();
+        headers.put("Authorization", basicAuth);
 
+        JsonRpcHttpClient client = new JsonRpcHttpClient(new URL("http://127.0.0.1:"+port+"/lg"), headers);
+        
         TracerouteService remoteService = ProxyUtil.createClientProxy(
                 getClass().getClassLoader(),
                 TracerouteService.class,

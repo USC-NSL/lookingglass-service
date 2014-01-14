@@ -7,6 +7,8 @@ import edu.usc.cs.nsl.lookingglass.database.DBManager;
 import edu.usc.cs.nsl.lookingglass.tracert.LGManager;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import org.apache.log4j.Logger;
 
@@ -28,6 +30,28 @@ public class Main {
 
     public void setConfigFile(String configFile) {
         this.configFile = configFile;
+    }
+    
+    /**
+     * 
+     * @param configString
+     * @return 
+     */
+    public static Map<String,String> parseUsers(String configString) throws Exception {
+
+        Map<String, String> authMap = new HashMap<String, String>();
+
+        String[] userPassPairs = configString.split(",");
+        for (String userPassPair : userPassPairs) {
+
+            String[] userPass = userPassPair.split(":");
+            String user = userPass[0];
+            String pass = userPass[1];
+            
+            authMap.put(user, pass);
+        }
+        
+        return authMap;
     }
     
     public static void main(String args[]) throws Exception {
@@ -59,6 +83,10 @@ public class Main {
         String username = prop.getProperty("db.user");
         String password = prop.getProperty("db.password");
         
+        
+        String accountString = prop.getProperty("server.accounts");
+        Map<String,String> authMap = parseUsers(accountString);
+        
         final DBManager dbManager = new DBManager(url, username, password, driverName);
         LGManager lgManager = new LGManager(dbManager);
         
@@ -68,8 +96,7 @@ public class Main {
         QueryProcessor queryProcessor = new QueryProcessor(lgManager);
         TracerouteService tracerouteService = new TracerouteServiceImpl(dbManager, queryProcessor);
         
-        //final LookingGlassServer server = new LookingGlassServer(tracerouteService, port, maxThreads);
-        final LookingGlassHttpServer server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor);
+        final LookingGlassHttpServer server = new LookingGlassHttpServer(port, tracerouteService, queryProcessor, authMap);
         
         Runtime.getRuntime().addShutdownHook(new Thread("Server Bootstrap Thread") {
             @Override
