@@ -95,12 +95,6 @@ public class TracerouteServiceImpl implements TracerouteService {
         }
     }
     
-    @Override
-    public List<String> active() {
-        log.info("Process request for active looking glasses");
-        return dbManager.activeLGs();
-    }
-    
     /**
      * 
      * @param measurementId
@@ -144,6 +138,7 @@ public class TracerouteServiceImpl implements TracerouteService {
          * First check the queue
          */
         if(queryProcessor.inQueue(measurementId)){
+            
             return "processing";
         }
         
@@ -229,6 +224,12 @@ public class TracerouteServiceImpl implements TracerouteService {
         }
     }
     
+    @Override
+    public List<String> active() {
+        log.info("Process request for active looking glasses");
+        return dbManager.activeLGs();
+    }
+    
     /**
      * 
      * @param asn
@@ -237,7 +238,7 @@ public class TracerouteServiceImpl implements TracerouteService {
     @Override
     public Collection<String> active(int asn) {
        log.info("Processing request for active LGs in ASN "+asn);
-       return dbManager.getASMapping().get(asn);
+       return dbManager.activeLGs(asn);
     }
 
     /**
@@ -247,7 +248,7 @@ public class TracerouteServiceImpl implements TracerouteService {
     @Override
     public Collection<Integer> ases() {
         log.info("Processing request for ASes");
-        return dbManager.getASMapping().keySet();
+        return dbManager.getActiveASes();
     }
     
     public String databaseStatusToService(String dbStatus){

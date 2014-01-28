@@ -33,13 +33,15 @@ public class QueryProcessor {
     private LGManager lgManager;
     private Set<Object> processing;
     private long queuePollTimeout = 1000;
-    private int threadpoolSize = 30;
+    private int threadpoolSize = 100;
     private int qSize = 100;
     private int domainQueryTimeGap = 5*60*1000;
-    //private ExecutorService executor;
     private ThreadPoolExecutor executor;
     private boolean isRunning;
     private Lock lock;
+    
+    private long lastTimeQueriesChecked = 0;
+    private long newQueriesCheck = 3000;
     
     /**
      * 
@@ -168,8 +170,8 @@ public class QueryProcessor {
         log.info("Started QueryProcessor");
         
         //executor = Executors.newFixedThreadPool(threadpoolSize, new QueryProcessorThreadFactory(THREADPOOL_NAME));
-        executor = new ThreadPoolExecutor(threadpoolSize, threadpoolSize,
-                0L, TimeUnit.MILLISECONDS, 
+        executor = new ThreadPoolExecutor(20, threadpoolSize,
+                1000L, TimeUnit.MILLISECONDS, 
                 new LinkedBlockingQueue<Runnable>());
         
         isRunning = true;
@@ -209,7 +211,9 @@ public class QueryProcessor {
             /**
              * Got here because we either got a query or a timeout
              */
-            runAvailableQueries();
+            if((System.currentTimeMillis()-lastTimeQueriesChecked) > this.newQueriesCheck){
+                runAvailableQueries();
+            }
         }
         
     }
@@ -238,7 +242,6 @@ public class QueryProcessor {
                 timeGap = 40000;
             }
 
-            boolean canStart = false;
             
             DomainInfo domainInfo = lgManager.getDomainInfo(domain);
             if (domainInfo == null) {
@@ -246,11 +249,19 @@ public class QueryProcessor {
                 continue;
             }
 
-            canStart = !domainInfo.getInPool()
-                    && new Date().getTime() - domainInfo.getFinishTime() > timeGap;
+//            canStart = !domainInfo.getInPool()
+//                    && new Date().getTime() - domainInfo.getFinishTime() > timeGap;
+            boolean canStart = false;
+            
+            if(domainInfo.getLastRunTime() == -1){
+                canStart = true; //first time running this domain
+            } else {
+                canStart = (System.currentTimeMillis()-domainInfo.getLastRunTime()) >= timeGap;
+            }
             
             if (canStart) {
                 domainInfo.start(); //marks this as being in the thread pool
+                domainInfo.setLastRunTime(System.currentTimeMillis());
                 
                 lock.lock();
                 try {
